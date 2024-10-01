@@ -27,7 +27,7 @@
   ];
 
   const onGridReady = (params: GridReadyEvent) => {
-    const cols = params.columnApi.getColumns();
+    const cols = params.api.getColumns();
     cols?.forEach((col) => {
       const colDef = col.getColDef();
       console.log(colDef.headerName + ', Column ID = ' + col.getId(), JSON.stringify(colDef));

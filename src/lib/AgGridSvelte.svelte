@@ -1,14 +1,20 @@
 <script lang="ts" context="module">
+    import { toBoolean, toNumber } from './ag-grid.utils';
+
   const formatProperty = new Map<string, (value: unknown) => unknown>([
-    ...ComponentUtil.BOOLEAN_PROPERTIES.map((prop) => [prop, ComponentUtil.toBoolean] as const),
-    ...ComponentUtil.NUMBER_PROPERTIES.map((prop) => [prop, ComponentUtil.toNumber] as const)
+    ...ComponentUtil.BOOLEAN_PROPERTIES.map((prop) => [prop, toBoolean] as const),
+    ...PropertyKeys.NUMBER_PROPERTIES.map((prop) => [prop, toNumber] as const)
   ]);
 </script>
 
 <script lang="ts">
   import {
+    _combineAttributesAndGridOptions,
+    _processOnChange,
     ComponentUtil,
-    Grid,
+    createGrid,
+    PropertyKeys,
+    type GridApi,
     type GridOptions,
     type GridParams,
     type GridReadyEvent,
@@ -88,8 +94,6 @@
   export let enterNavigatesVerticallyAfterEdit: Options['enterNavigatesVerticallyAfterEdit'] =
     undefined;
   export let enableCellEditingOnBackspace: Options['enableCellEditingOnBackspace'] = undefined;
-  export let enterMovesDown: Options['enterMovesDown'] = undefined;
-  export let enterMovesDownAfterEdit: Options['enterMovesDownAfterEdit'] = undefined;
   export let undoRedoCellEditing: Options['undoRedoCellEditing'] = undefined;
   export let undoRedoCellEditingLimit: Options['undoRedoCellEditingLimit'] = undefined;
   export let readOnlyEdit: Options['readOnlyEdit'] = undefined;
@@ -110,7 +114,6 @@
     undefined;
   // Integrated Charts
   export let enableCharts: Options['enableCharts'] = undefined;
-  export let suppressChartToolPanelsButton: Options['suppressChartToolPanelsButton'] = undefined;
   export let getChartToolbarItems: Options['getChartToolbarItems'] = undefined;
   export let createChartContainer: Options['createChartContainer'] = undefined;
   export let chartThemes: Options['chartThemes'] = undefined;
@@ -140,8 +143,7 @@
   export let keepDetailRows: Options['keepDetailRows'] = undefined;
   export let keepDetailRowsCount: Options['keepDetailRowsCount'] = undefined;
   // Miscellaneous
-  export let api: Options['api'] = undefined;
-  export let columnApi: Options['columnApi'] = undefined;
+  export let api: GridApi | undefined = undefined;
   export let alignedGrids: Options['alignedGrids'] = undefined;
   export let context: Options['context'] = undefined;
   export let tabIndex: Options['tabIndex'] = undefined;
@@ -150,11 +152,8 @@
   export let valueCacheNeverExpires: Options['valueCacheNeverExpires'] = undefined;
   export let enableCellExpressions: Options['enableCellExpressions'] = undefined;
   export let getDocument: Options['getDocument'] = undefined;
-  export let suppressParentsInRowNodes: Options['suppressParentsInRowNodes'] = undefined;
   export let suppressTouch: Options['suppressTouch'] = undefined;
   export let suppressFocusAfterRefresh: Options['suppressFocusAfterRefresh'] = undefined;
-  export let suppressAsyncEvents: Options['suppressAsyncEvents'] = undefined;
-  export let suppressBrowserResizeObserver: Options['suppressBrowserResizeObserver'] = undefined;
   export let suppressPropertyNamesCheck: Options['suppressPropertyNamesCheck'] = undefined;
   export let suppressChangeDetection: Options['suppressChangeDetection'] = undefined;
   export let debug: Options['debug'] = undefined;
@@ -162,7 +161,6 @@
   export let overlayLoadingTemplate: Options['overlayLoadingTemplate'] = undefined;
   export let loadingOverlayComponent: Options['loadingOverlayComponent'] = undefined;
   export let loadingOverlayComponentParams: Options['loadingOverlayComponentParams'] = undefined;
-  export let suppressLoadingOverlay: Options['suppressLoadingOverlay'] = undefined;
   export let overlayNoRowsTemplate: Options['overlayNoRowsTemplate'] = undefined;
   export let noRowsOverlayComponent: Options['noRowsOverlayComponent'] = undefined;
   export let noRowsOverlayComponentParams: Options['noRowsOverlayComponentParams'] = undefined;
@@ -188,7 +186,6 @@
   export let getGroupRowAgg: Options['getGroupRowAgg'] = undefined;
   export let suppressAggFuncInHeader: Options['suppressAggFuncInHeader'] = undefined;
   export let alwaysAggregateAtRootLevel: Options['alwaysAggregateAtRootLevel'] = undefined;
-  export let suppressAggAtRootLevel: Options['suppressAggAtRootLevel'] = undefined;
   export let aggregateOnlyChangedColumns: Options['aggregateOnlyChangedColumns'] = undefined;
   export let suppressAggFilteredOnly: Options['suppressAggFilteredOnly'] = undefined;
   export let groupAggFiltering: Options['groupAggFiltering'] = undefined;
@@ -196,9 +193,6 @@
     undefined;
   // Rendering
   export let animateRows: Options['animateRows'] = undefined;
-  export let enableCellChangeFlash: Options['enableCellChangeFlash'] = undefined;
-  export let cellFlashDelay: Options['cellFlashDelay'] = undefined;
-  export let cellFadeDelay: Options['cellFadeDelay'] = undefined;
   export let allowShowChangeAfterFilter: Options['allowShowChangeAfterFilter'] = undefined;
   export let domLayout: Options['domLayout'] = undefined;
   export let ensureDomOrder: Options['ensureDomOrder'] = undefined;
@@ -225,11 +219,7 @@
   export let groupDefaultExpanded: Options['groupDefaultExpanded'] = undefined;
   export let autoGroupColumnDef: Options['autoGroupColumnDef'] = undefined;
   export let groupMaintainOrder: Options['groupMaintainOrder'] = undefined;
-  export let groupSelectsChildren: Options['groupSelectsChildren'] = undefined;
-  export let groupIncludeFooter: Options['groupIncludeFooter'] = undefined;
-  export let groupIncludeTotalFooter: Options['groupIncludeTotalFooter'] = undefined;
   export let groupSuppressBlankHeader: Options['groupSuppressBlankHeader'] = undefined;
-  export let groupSelectsFiltered: Options['groupSelectsFiltered'] = undefined;
   export let showOpenedGroup: Options['showOpenedGroup'] = undefined;
   export let isGroupOpenByDefault: Options['isGroupOpenByDefault'] = undefined;
   export let initialGroupOrderComparator: Options['initialGroupOrderComparator'] = undefined;
@@ -281,12 +271,7 @@
   export let serverSideSortAllLevels: Options['serverSideSortAllLevels'] = undefined;
   export let serverSideOnlyRefreshFilteredGroups: Options['serverSideOnlyRefreshFilteredGroups'] =
     undefined;
-  export let serverSideFilterAllLevels: Options['serverSideFilterAllLevels'] = undefined;
-  export let serverSideSortOnServer: Options['serverSideSortOnServer'] = undefined;
-  export let serverSideFilterOnServer: Options['serverSideFilterOnServer'] = undefined;
   export let serverSideInitialRowCount: Options['serverSideInitialRowCount'] = undefined;
-  export let suppressServerSideInfiniteScroll: Options['suppressServerSideInfiniteScroll'] =
-    undefined;
   export let getChildCount: Options['getChildCount'] = undefined;
   export let getServerSideGroupLevelParams: Options['getServerSideGroupLevelParams'] = undefined;
   export let isServerSideGroupOpenByDefault: Options['isServerSideGroupOpenByDefault'] = undefined;
@@ -312,19 +297,9 @@
   export let scrollbarWidth: Options['scrollbarWidth'] = undefined;
   // Selection
   export let rowSelection: Options['rowSelection'] = undefined;
-  export let rowMultiSelectWithClick: Options['rowMultiSelectWithClick'] = undefined;
-  export let isRowSelectable: Options['isRowSelectable'] = undefined;
-  export let suppressRowDeselection: Options['suppressRowDeselection'] = undefined;
-  export let suppressRowClickSelection: Options['suppressRowClickSelection'] = undefined;
   export let suppressCellFocus: Options['suppressCellFocus'] = undefined;
-  export let suppressMultiRangeSelection: Options['suppressMultiRangeSelection'] = undefined;
   export let enableCellTextSelection: Options['enableCellTextSelection'] = undefined;
-  export let enableRangeSelection: Options['enableRangeSelection'] = undefined;
-  export let enableRangeHandle: Options['enableRangeHandle'] = undefined;
-  export let enableFillHandle: Options['enableFillHandle'] = undefined;
-  export let fillHandleDirection: Options['fillHandleDirection'] = undefined;
   export let fillOperation: Options['fillOperation'] = undefined;
-  export let suppressClearOnFillReduction: Options['suppressClearOnFillReduction'] = undefined;
   // Sorting
   export let sortingOrder: Options['sortingOrder'] = undefined;
   export let accentedSort: Options['accentedSort'] = undefined;
@@ -370,12 +345,11 @@
 
   onMount(() => {
     const _onGridReady = gridOptions.onGridReady;
-    gridOptions = ComponentUtil.copyAttributesToGridOptions(gridOptions, {
+    gridOptions = _combineAttributesAndGridOptions(gridOptions, {
       ...$$props,
       onGridReady(event: GridReadyEvent<TData>) {
         ready = true;
         api = event.api;
-        columnApi = event.columnApi;
         onGridReady?.(event);
         _onGridReady?.(event);
       }
@@ -389,7 +363,7 @@
       modules
     };
 
-    const grid = new Grid(eGui, gridOptions, gridParams);
+    const grid = createGrid(eGui, gridOptions, gridParams);
 
     return () => {
       grid.destroy();
@@ -405,6 +379,7 @@
     const formattedProp = formatProperty.get(key)?.(prop) ?? prop;
     setters[setterName]?.(formattedProp);
     gridOptions[key] = formattedProp;
+    _processOnChange(gridOptions, api);
   };
 
   // Tooltips (Update first?
@@ -473,8 +448,8 @@
   $: updateProp('enterNavigatesVertically', enterNavigatesVertically);
   $: updateProp('enterNavigatesVerticallyAfterEdit', enterNavigatesVerticallyAfterEdit);
   $: updateProp('enableCellEditingOnBackspace', enableCellEditingOnBackspace);
-  $: updateProp('enterMovesDown', enterMovesDown);
-  $: updateProp('enterMovesDownAfterEdit', enterMovesDownAfterEdit);
+  $: updateProp('enterNavigatesVertically', enterNavigatesVertically);
+  $: updateProp('enterNavigatesVerticallyAfterEdit', enterNavigatesVerticallyAfterEdit);
   $: updateProp('undoRedoCellEditing', undoRedoCellEditing);
   $: updateProp('undoRedoCellEditingLimit', undoRedoCellEditingLimit);
   $: updateProp('readOnlyEdit', readOnlyEdit);
@@ -493,7 +468,6 @@
   $: updateProp('excludeChildrenWhenTreeDataFiltering', excludeChildrenWhenTreeDataFiltering);
   // Integrated Charts
   $: updateProp('enableCharts', enableCharts);
-  $: updateProp('suppressChartToolPanelsButton', suppressChartToolPanelsButton);
   $: updateProp('getChartToolbarItems', getChartToolbarItems);
   $: updateProp('createChartContainer', createChartContainer);
   $: updateProp('chartThemes', chartThemes);
@@ -524,7 +498,6 @@
   $: updateProp('keepDetailRowsCount', keepDetailRowsCount);
   // Miscellaneous
   $: updateProp('api', api);
-  $: updateProp('columnApi', columnApi);
   $: updateProp('alignedGrids', alignedGrids);
   $: updateProp('context', context);
   $: updateProp('tabIndex', tabIndex);
@@ -533,11 +506,8 @@
   $: updateProp('valueCacheNeverExpires', valueCacheNeverExpires);
   $: updateProp('enableCellExpressions', enableCellExpressions);
   $: updateProp('getDocument', getDocument);
-  $: updateProp('suppressParentsInRowNodes', suppressParentsInRowNodes);
   $: updateProp('suppressTouch', suppressTouch);
   $: updateProp('suppressFocusAfterRefresh', suppressFocusAfterRefresh);
-  $: updateProp('suppressAsyncEvents', suppressAsyncEvents);
-  $: updateProp('suppressBrowserResizeObserver', suppressBrowserResizeObserver);
   $: updateProp('suppressPropertyNamesCheck', suppressPropertyNamesCheck);
   $: updateProp('suppressChangeDetection', suppressChangeDetection);
   $: updateProp('debug', debug);
@@ -545,7 +515,6 @@
   $: updateProp('overlayLoadingTemplate', overlayLoadingTemplate);
   $: updateProp('loadingOverlayComponent', loadingOverlayComponent);
   $: updateProp('loadingOverlayComponentParams', loadingOverlayComponentParams);
-  $: updateProp('suppressLoadingOverlay', suppressLoadingOverlay);
   $: updateProp('overlayNoRowsTemplate', overlayNoRowsTemplate);
   $: updateProp('noRowsOverlayComponent', noRowsOverlayComponent);
   $: updateProp('noRowsOverlayComponentParams', noRowsOverlayComponentParams);
@@ -571,7 +540,6 @@
   $: updateProp('getGroupRowAgg', getGroupRowAgg);
   $: updateProp('suppressAggFuncInHeader', suppressAggFuncInHeader);
   $: updateProp('alwaysAggregateAtRootLevel', alwaysAggregateAtRootLevel);
-  $: updateProp('suppressAggAtRootLevel', suppressAggAtRootLevel);
   $: updateProp('aggregateOnlyChangedColumns', aggregateOnlyChangedColumns);
   $: updateProp('suppressAggFilteredOnly', suppressAggFilteredOnly);
   $: updateProp('groupAggFiltering', groupAggFiltering);
@@ -581,9 +549,6 @@
   );
   // Rendering
   $: updateProp('animateRows', animateRows);
-  $: updateProp('enableCellChangeFlash', enableCellChangeFlash);
-  $: updateProp('cellFlashDelay', cellFlashDelay);
-  $: updateProp('cellFadeDelay', cellFadeDelay);
   $: updateProp('allowShowChangeAfterFilter', allowShowChangeAfterFilter);
   $: updateProp('domLayout', domLayout);
   $: updateProp('ensureDomOrder', ensureDomOrder);
@@ -609,11 +574,7 @@
   $: updateProp('groupDefaultExpanded', groupDefaultExpanded);
   $: updateProp('autoGroupColumnDef', autoGroupColumnDef);
   $: updateProp('groupMaintainOrder', groupMaintainOrder);
-  $: updateProp('groupSelectsChildren', groupSelectsChildren);
-  $: updateProp('groupIncludeFooter', groupIncludeFooter);
-  $: updateProp('groupIncludeTotalFooter', groupIncludeTotalFooter);
   $: updateProp('groupSuppressBlankHeader', groupSuppressBlankHeader);
-  $: updateProp('groupSelectsFiltered', groupSelectsFiltered);
   $: updateProp('showOpenedGroup', showOpenedGroup);
   $: updateProp('isGroupOpenByDefault', isGroupOpenByDefault);
   $: updateProp('initialGroupOrderComparator', initialGroupOrderComparator);
@@ -673,15 +634,7 @@
   $: if (rowModelType === 'serverSide')
     updateProp('serverSideOnlyRefreshFilteredGroups', serverSideOnlyRefreshFilteredGroups);
   $: if (rowModelType === 'serverSide')
-    updateProp('serverSideFilterAllLevels', serverSideFilterAllLevels);
-  $: if (rowModelType === 'serverSide')
-    updateProp('serverSideSortOnServer', serverSideSortOnServer);
-  $: if (rowModelType === 'serverSide')
-    updateProp('serverSideFilterOnServer', serverSideFilterOnServer);
-  $: if (rowModelType === 'serverSide')
     updateProp('serverSideInitialRowCount', serverSideInitialRowCount);
-  $: if (rowModelType === 'serverSide')
-    updateProp('suppressServerSideInfiniteScroll', suppressServerSideInfiniteScroll);
   $: if (rowModelType === 'serverSide') updateProp('getChildCount', getChildCount);
   $: if (rowModelType === 'serverSide')
     updateProp('getServerSideGroupLevelParams', getServerSideGroupLevelParams);
@@ -710,19 +663,9 @@
   $: updateProp('scrollbarWidth', scrollbarWidth);
   // Selection
   $: updateProp('rowSelection', rowSelection);
-  $: updateProp('rowMultiSelectWithClick', rowMultiSelectWithClick);
-  $: updateProp('isRowSelectable', isRowSelectable);
-  $: updateProp('suppressRowDeselection', suppressRowDeselection);
-  $: updateProp('suppressRowClickSelection', suppressRowClickSelection);
   $: updateProp('suppressCellFocus', suppressCellFocus);
-  $: updateProp('suppressMultiRangeSelection', suppressMultiRangeSelection);
   $: updateProp('enableCellTextSelection', enableCellTextSelection);
-  $: updateProp('enableRangeSelection', enableRangeSelection);
-  $: updateProp('enableRangeHandle', enableRangeHandle);
-  $: updateProp('enableFillHandle', enableFillHandle);
-  $: updateProp('fillHandleDirection', fillHandleDirection);
   $: updateProp('fillOperation', fillOperation);
-  $: updateProp('suppressClearOnFillReduction', suppressClearOnFillReduction);
   // Sorting
   $: updateProp('sortingOrder', sortingOrder);
   $: updateProp('accentedSort', accentedSort);

@@ -30,7 +30,7 @@
       { colId: 'country', sort: 'asc', sortIndex: 0 },
       { colId: 'athlete', sort: 'asc', sortIndex: 1 }
     ];
-    params.columnApi.applyColumnState({ state: defaultSortModel });
+    params.api.applyColumnState({ state: defaultSortModel });
   }
 </script>
 
