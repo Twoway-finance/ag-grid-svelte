@@ -329,6 +329,9 @@
   export let tooltipHideDelay: Options['tooltipHideDelay'] = undefined;
   export let tooltipMouseTrack: Options['tooltipMouseTrack'] = undefined;
 
+  // State
+  export let initialState: Options['initialState'] = undefined;
+
   // Events
   export let onGridReady: Options['onGridReady'] = undefined;
 
@@ -689,6 +692,9 @@
   $: updateProp('suppressRowHoverHighlight', suppressRowHoverHighlight);
   $: updateProp('suppressRowTransform', suppressRowTransform);
   $: updateProp('columnHoverHighlight', columnHoverHighlight);
+
+  // State
+  $: updateProp('initialState', initialState);
 
   // TODO: events
   // TODO: custom row model
