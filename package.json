@@ -1,6 +1,6 @@
 {
   "name": "ag-grid-svelte",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "An unofficial Svelte wrapper for AG Grid",
   "type": "module",
   "devDependencies": {
@@ -10,8 +10,8 @@
     "@sveltejs/package": "^2.3.1",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@typescript-eslint/parser": "^5.59.6",
-    "ag-grid-community": "^32.2.1",
-    "ag-grid-enterprise": "^32.2.1",
+    "ag-grid-community": "^32.3.0",
+    "ag-grid-enterprise": "^32.3.0",
     "commit-and-tag-version": "^11.2.1",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
